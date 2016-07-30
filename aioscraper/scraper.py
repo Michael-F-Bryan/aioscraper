@@ -32,31 +32,37 @@ class BaseCrawler:
                                       loop=self.loop)
         
         # Set up logging
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(self.config.get('log-level', logging.DEBUG))
-        
-        log_file = self.config.get('log-file', 'stderr')
-
-        if log_file == 'stdout':
-            handler = logging.StreamHandler(sys.stdout)
-        elif log_file == 'stderr':
-            handler = logging.StreamHandler(sys.stderr)
+        if 'logger' in self.config:
+            # Check whether the user gave us a logger to work with
+            self.logger = self.config['logger']
         else:
-            handler = logging.FileHandler(log_file)
+            # Otherwise, make one
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(self.config.get('log-level', logging.DEBUG))
+            
+            log_file = self.config.get('log-file', 'stderr')
 
-        self.logger.handlers.clear()
-        
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s: %(message)s',
-            datefmt='%Y/%m/%d %I:%M:%S %p'
-        )
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+            if log_file == 'stdout':
+                handler = logging.StreamHandler(sys.stdout)
+            elif log_file == 'stderr':
+                handler = logging.StreamHandler(sys.stderr)
+            else:
+                handler = logging.FileHandler(log_file)
+
+            self.logger.handlers.clear()
+            
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s: %(message)s',
+                datefmt='%Y/%m/%d %I:%M:%S %p'
+            )
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
         
     def prepare(self):
         """
         A function run just before starting the event loop to set up the 
-        crawler.
+        crawler. Do stuff like initializing variables and setting up database
+        connections or caches here.
         """
         self.base_url = 'http://google.com/'
     
