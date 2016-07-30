@@ -1,0 +1,13 @@
+"""
+A web scraping framework constructed similarly to the `grab` or `scrapy`
+libraries, but using Python's `asyncio` library.
+"""
+
+from .models import Page, Job
+from .scraper import BaseCrawler
+
+__version__ = '0.1.0'
+
+__all__ = [
+        'Page', 'Job', 'BaseCrawler',
+        ]
