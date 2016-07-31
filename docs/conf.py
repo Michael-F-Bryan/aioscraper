@@ -62,7 +62,7 @@ author = 'Michael F Bryan'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = '0.1.0'
+release = '0.1.1'
 
 # The short X.Y version.
 # Because we use bumpversion, we want to generate this programatically
