@@ -4,7 +4,6 @@ also able to test handlers in an interactive environment.
 """
 
 import importlib
-import readline
 import sys
 import requests
 from bs4 import BeautifulSoup
