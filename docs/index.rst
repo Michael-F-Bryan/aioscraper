@@ -11,6 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   README <readme.rst>
+   aioscraper
+
 
 
 Indices and tables
