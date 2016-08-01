@@ -30,18 +30,24 @@ class Page:
         return self._soup
         
     def __repr__(self):
-        return '<{}: url={}>'.format(
+        return '<{}: url={} status={}>'.format(
                 self.__class__.__name__,
-                self.url if len(self.url) < 37 else self.url[:37] + '...')
+                self.url if len(self.url) < 37 else self.url[:37] + '...',
+                self.status)
         
 
 class Job:
-    def __init__(self, name, url, method='GET', headers=None, cookies=None):
+    def __init__(self, name, url, method='GET', headers=None, cookies=None, 
+            **kwargs):
         self.name = name
         self.url = url
         self.method = method
         self.headers = headers
         self.cookies = cookies
+
+        # Add any other attributes specified to the Job's __dict__
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         
     def __repr__(self):
         return '<{}: name="{}" url={}>'.format(

@@ -6,6 +6,7 @@ import asyncio
 import sys
 import logging
 import inspect
+from contextlib import suppress
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -25,6 +26,7 @@ class BaseCrawler:
         self.config = config or {}
         self.loop = asyncio.get_event_loop()
         self.tasks = []
+        self.follow_redirects = True
         
         # Use a semaphore for rate limiting so we only have a set number of
         # concurrent connections
@@ -75,9 +77,21 @@ class BaseCrawler:
                 async with session.request(method, url) as resp:
                     page = Page(url)
                     page.status = resp.status
-                    page.text = await resp.text()
-                    page.content = await resp.read()
-                    return page
+
+                    # Check if we've been given a redirect and are following
+                    # Redirects
+                    if self.follow_redirects and resp.status in [301, 302]:
+                        # Follow the redirect
+                        url = resp.headers['Location']
+                        self.logger.debug('%r following redirect, %s', job, url)
+                        return await self.get_page(url, method, headers, cookies)
+                    else:
+                        page.text = await resp.text()
+                        page.content = await resp.read()
+                        page.headers = resp.headers
+                        page.cookies = resp.cookies
+                        return page
+
                 
     async def handle(self, job):
         """
@@ -149,6 +163,27 @@ class BaseCrawler:
         
         # While all tasks aren't either cancelled or done, run the loop until
         # All currently queued tasks are done. Then check again.
-        while not all(t.cancelled() or t.done() 
-                for t in asyncio.Task.all_tasks(loop=self.loop)):
-            self.loop.run_until_complete(asyncio.gather(*self.tasks))
+        try:
+            while not all(t.cancelled() or t.done() 
+                    for t in asyncio.Task.all_tasks(loop=self.loop)):
+                self.loop.run_until_complete(asyncio.gather(*self.tasks))
+        except KeyboardInterrupt:
+            print()
+            print('Halting event loop')
+            self.stop()
+
+    def stop(self):
+        """
+        Cancel all tasks, then let the loop finish them off and tidy up.
+        """
+        # Cancel all the tasks
+        for task in asyncio.Task.all_tasks():
+            task.cancel()
+
+        # Now make sure the tasks stopped
+        for task in asyncio.Task.all_tasks():
+            with suppress(asyncio.CancelledError):
+                self.loop.run_until_complete(task)
+                
+        self.loop.close()
+
