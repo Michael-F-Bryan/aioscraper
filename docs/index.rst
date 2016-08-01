@@ -12,7 +12,8 @@ Contents:
    :maxdepth: 2
 
    README <readme.rst>
-   aioscraper
+   quickstart
+   API Reference <aioscraper.rst>
 
 
 
